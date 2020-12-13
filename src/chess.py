@@ -4,13 +4,13 @@ pygame.init()
 
 win = pygame.display.set_mode((640,640))
 
-board_img = pygame.image.load("imgs/board.png")
-(wpawn, bpawn) = (pygame.image.load("imgs/wpawn.png"),pygame.image.load("imgs/bpawn.png"))
-(wknight, bknight) = (pygame.image.load("imgs/wknight.png"),pygame.image.load("imgs/bknight.png"))
-(wbishop, bbishop) = (pygame.image.load("imgs/wbishop.png"),pygame.image.load("imgs/bbishop.png"))
-(wrook, brook) = (pygame.image.load("imgs/wrook.png"),pygame.image.load("imgs/brook.png"))
-(wqueen, bqueen) = (pygame.image.load("imgs/wqueen.png"),pygame.image.load("imgs/bqueen.png"))
-(wking, bking) = (pygame.image.load("imgs/wking.png"),pygame.image.load("imgs/bking.png"))
+board_img = pygame.image.load("libs/board.png")
+(wpawn, bpawn) = (pygame.image.load("libs/wpawn.png"),pygame.image.load("libs/bpawn.png"))
+(wknight, bknight) = (pygame.image.load("libs/wknight.png"),pygame.image.load("libs/bknight.png"))
+(wbishop, bbishop) = (pygame.image.load("libs/wbishop.png"),pygame.image.load("libs/bbishop.png"))
+(wrook, brook) = (pygame.image.load("libs/wrook.png"),pygame.image.load("libs/brook.png"))
+(wqueen, bqueen) = (pygame.image.load("libs/wqueen.png"),pygame.image.load("libs/bqueen.png"))
+(wking, bking) = (pygame.image.load("libs/wking.png"),pygame.image.load("libs/bking.png"))
 
 board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
 [bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn],
