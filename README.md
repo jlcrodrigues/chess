@@ -5,27 +5,17 @@
 
 ### Objetivo
 
-1. Criar um jogo de xadrez em Pygame...
+1. Desenvolver um jogo de xadrez em Pygame.
 
-### Repositório de código
-
-1) Link para o repositório do GitHub: https://github.com/@author/xxx
-
-2) Adicionar, como colaborador com permissão de leitura (*role read*), o Prof. da prática:
-
-- https://github.com/AfonsoSalgadoSousa
-- https://github.com/jlopes60
-- https://github.com/nmacedo
-- https://github.com/rpmcruz
-- https://github.com/rcamacho
+2. Adicionar um modo 1 jogador (player vs CPU).
 
 ### Descrição
 
-*--- ---*
+*---O xadrez é um jogo de tabuleiro no qual cada jogador começa com 16 peças e tem como objetivo dar checkmate ao adversário. Cada peça tem regras específicas de movimento e para completar o objetivo é necessário ameaçar e bloquear o rei adversário.---*
 
 ### UI
 
-![UI](https://github.com/fpro-feup/public/blob/master/recitas/ui.png)
+![UI](https://github.com/jlcrodrigues/chess/blob/main/chessui.jpg)
 
 ### Pacotes
 
@@ -33,9 +23,9 @@
 
 ### Tarefas
 
-1. carregar os níveis
-1. desenhar a matriz do nível
-1. ler teclas e mover as peças
-2. verificar se jogador chegou ao fim do nível
+1. Desenvolver o movimento das peças.
+2. Limitar os movimentos aos movimentos válidos.
+3. Adicionar check e checkmate.
+4. Adaptar o jogo para 1 jogador.
 
-- Atualizado a última vez em 07/12/2020
+- Atualizado a última vez em 14/12/2020
