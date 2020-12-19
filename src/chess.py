@@ -52,6 +52,7 @@ def possible_moves(coords):
     if piece == wpawn and coords[1] > 0:
         if board[coords[1] - 1][coords[0]] == 0:
             res.append((coords[0], coords[1] - 1))
+        if board[coords[1] - 2][coords[0]] == 0:
             if coords[1] == 6: res.append((coords[0], coords[1] - 2)) #first move
         if coords[0] < 7:
             if board[coords[1] - 1][coords[0] + 1] != 0: res.append((coords[0] + 1, coords[1] - 1)) #left capture
@@ -60,6 +61,7 @@ def possible_moves(coords):
     if piece == bpawn and coords[1] < 7:
         if board[coords[1] + 1][coords[0]] == 0:
             res.append((coords[0], coords[1] + 1))
+        if board[coords[1] + 2][coords[0]] == 0:
             if coords[1] == 1: res.append((coords[0], coords[1] + 2)) #first move
         if coords[0] < 7:
             if board[coords[1] + 1][coords[0] + 1] != 0: res.append((coords[0] + 1, coords[1] + 1)) #left capture
@@ -71,31 +73,29 @@ def possible_moves(coords):
         for x, y in [(x, y) for y in (1,-1) for x in (2, -2)]:
             res.append((coords[0] + x, coords[1] + y))
 
-    if piece in [wbishop, bbishop, wqueen, bqueen]: #WIP   
-        for i in range(1, 10):
-            if 0 <= coords[0] + i <= 7 and 0 <= coords[1] + i <= 7:
-                res.append((coords[0] + i, coords[1] + i))
-                if board[coords[1] + i][coords[0] + i] != 0: break
-        for i in range(1, 10):
-            if 0 <= coords[0] + i <= 7 and 0 <= coords[1] - i <= 7:
-                res.append((coords[0] + i, coords[1] - i))
-                if board[coords[1] - i][coords[0] + i] != 0: break
-        for i in range(1, 10):
-            if 0 <= coords[0] - i <= 7 and 0 <= coords[1] + i <= 7:
-                res.append((coords[0] - i, coords[1] + i))
-                if board[coords[1] + i][coords[0] - i] != 0: break
-        for i in range(1, 10):
-            if 0 <= coords[0] - i <= 7 and 0 <= coords[1] - i <= 7:
-                res.append((coords[0] - i, coords[1] - i))
-                if board[coords[1] - i][coords[0] - i] != 0: break
+    if piece in [wbishop, bbishop, wqueen, bqueen]: 
+        for j, g in [(j, g) for j in (-1, 1) for g in (-1, 1)]:
+            for i in range(1, 10):
+                if 0 <= coords[0] + i * g<= 7 and 0 <= coords[1] + i * j <= 7:
+                    res.append((coords[0] + i * g, coords[1] + i * j))
+                    if board[coords[1] + i * j][coords[0] + i * g] != 0: break
 
     if piece in [wrook, brook, wqueen, bqueen]:
-        pass
+        for j in [-1, 1]:
+            for i in range(1, 10):
+                if 0 <= coords[0] <= 7 and 0 <= coords[1] + i * j <= 7:
+                    res.append((coords[0] , coords[1] + i * j))
+                    if board[coords[1] + i * j][coords[0]] != 0: break
+
+            for i in range(1, 10):
+                if 0 <= coords[0] + i * j<= 7 and 0 <= coords[1]<= 7:
+                    res.append((coords[0] + i * j, coords[1]))
+                    if board[coords[1]][coords[0] + i * j] != 0: break
 
     if piece in [wking, bking]:
         pass
     
-    res = list(filter(lambda x: x[1] >= 0 and x[1] <= 7 and x[0] >= 0 and x[0] <= 7, res))
+    res = list(filter(lambda x: x[1] >= 0 and x[1] <= 7 and x[0] >= 0 and x[0] <= 7, res)) #check if move is inside the baord
     if is_white(piece): res = list(filter(lambda x: not is_white(board[x[1]][x[0]]), res)) #cant capture own
     if is_black(piece): res = list(filter(lambda x: not is_black(board[x[1]][x[0]]), res))
     #print(res)
@@ -132,4 +132,3 @@ while run:
     pygame.display.update()
 
 pygame.quit()
-
