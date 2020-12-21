@@ -1,4 +1,5 @@
 import pygame
+import copy
 
 pygame.init()
 
@@ -23,6 +24,14 @@ board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
 [wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn],
 [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]
 
+new_board = [[0,0,0,0,0,0,0,0] for _ in range(8)]
+
+def print_board(board): #for debugging
+    s = ["wpawn","wknight","wbishop","wrook","wqueen","wking", "bpawn","bknight","bbishop","brook","bqueen","bking",0]
+    p = [wpawn,wknight,wbishop,wrook,wqueen,wking, bpawn,bknight,bbishop,brook,bqueen,bking,0]
+    for line in board:
+        print(list(map(lambda x: s[p.index(x)], line)))
+
 def draw_board(board):
     '''Function that renders the pieces on the board'''
     for i in range(8):
@@ -45,7 +54,45 @@ def is_white(piece):
 def is_black(piece):
     return piece in [brook, bknight, bbishop, bqueen, bking, bpawn]
 
-def possible_moves(coords):
+def find_side(piece):
+    return "white" * is_white(piece) + "black" * is_black(piece)
+
+def find_king(side, board):
+    for (x,y) in [(x,y) for x in range(8) for y in range(8)]:
+        if side == "white" and board[y][x] == wking: return(x,y)
+        if side == "black" and board[y][x] == bking: return(x,y)
+
+def threat(coords, board):
+    '''Checks if a piece is threatened'''
+    for (x,y) in [(x,y) for x in range(8) for y in range(8) if board[y][x] != 0]: #iterates de pieces of the board
+        if find_side(board[coords[1]][coords[0]]) == "white":
+            if board[y][x] in [wking,bking]:
+                if is_black(board[y][x]) and coords in king_moves((x,y)): return True
+            elif is_black(board[y][x]) and coords in possible_moves((x,y), board): return True
+        if find_side(board[coords[1]][coords[0]]) == "black":
+            if board[y][x] in [wking,bking]:
+                if is_white(board[y][x]) and coords in king_moves((x,y)): return True
+            elif is_black(board[y][x]) and coords in possible_moves((x,y), board): return True
+    return False
+
+def threat_move(coords, new_coords):
+    '''Checks if moving a piece will endanger the king'''
+    for (x,y) in [(x,y) for x in range(8) for y in range(8)]:
+        new_board[y][x] = board[y][x]        
+    new_board[new_coords[1]][new_coords[0]] = new_board[coords[1]][coords[0]]
+    new_board[coords[1]][coords[0]] = 0
+    side = find_side(new_board[new_coords[1]][new_coords[0]])
+    return threat(find_king(side, new_board), new_board)
+
+def king_moves(coords):
+    '''Return all possible moves for the king without restrictions'''
+    res = []
+    for (j, g) in [(j,g) for j in [-1,1,0] for g in [-1,1,0]]:
+            if 0 <= coords[0] + j<= 7 and 0 <= coords[1] + g<= 7 and (coords[0] + j, coords[1] + g) != coords:
+                res.append((coords[0] + j, coords[1] + g))
+    return res
+
+def possible_moves(coords, board):
     '''Returns a list of tuples with the possible moves for a certain piece on the board'''
     piece = board[coords[1]][coords[0]]
     res = []
@@ -93,11 +140,13 @@ def possible_moves(coords):
                     if board[coords[1]][coords[0] + i * j] != 0: break
 
     if piece in [wking, bking]:
-        pass
+        for (x,y) in king_moves(coords):
+            if not threat_move(coords, (x,y)): res.append((x,y))
     
-    res = list(filter(lambda x: x[1] >= 0 and x[1] <= 7 and x[0] >= 0 and x[0] <= 7, res)) #check if move is inside the baord
+    res = list(filter(lambda x: x[1] >= 0 and x[1] <= 7 and x[0] >= 0 and x[0] <= 7, res)) #check if move is inside the board
     if is_white(piece): res = list(filter(lambda x: not is_white(board[x[1]][x[0]]), res)) #cant capture own
     if is_black(piece): res = list(filter(lambda x: not is_black(board[x[1]][x[0]]), res))
+    #res = list(filter(lambda x: not threat_move(coords, x), res)) #cant endanger king
     #print(res)
     return res
     
@@ -115,20 +164,22 @@ while run:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             if not inside_board(mouse): continue
-            if selected_check and hitbox(mouse) != selected and hitbox(mouse) in possible_moves(selected): #select the square to move to
+            if selected_check and hitbox(mouse) != selected and hitbox(mouse) in possible_moves(selected, board): #select the square to move to
                 new = hitbox(mouse)
                 board[new[1]][new[0]] = board[selected[1]][selected[0]]
                 board[selected[1]][selected[0]] = 0
                 selected_check = False
+                
             elif selected_check and hitbox(mouse) == selected: selected_check = False
             else: #select a piece to move
                 selected = hitbox(mouse)
                 if board[selected[1]][selected[0]] != 0: selected_check = True
+
     
     win.blit(board_img, (0,0))
     
     draw_board(board)
-    if selected_check: draw_moves(possible_moves(selected))
+    if selected_check: draw_moves(possible_moves(selected, board))
     pygame.display.update()
 
 pygame.quit()
