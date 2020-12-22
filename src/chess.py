@@ -68,11 +68,11 @@ def threat(coords, board):
         if find_side(board[coords[1]][coords[0]]) == "white":
             if board[y][x] in [wking,bking]:
                 if is_black(board[y][x]) and coords in king_moves((x,y)): return True
-            elif is_black(board[y][x]) and coords in possible_moves((x,y), board): return True
+            elif is_black(board[y][x]) and coords in moves((x,y), board): return True
         if find_side(board[coords[1]][coords[0]]) == "black":
             if board[y][x] in [wking,bking]:
                 if is_white(board[y][x]) and coords in king_moves((x,y)): return True
-            elif is_black(board[y][x]) and coords in possible_moves((x,y), board): return True
+            elif is_white(board[y][x]) and coords in moves((x,y), board): return True
     return False
 
 def threat_move(coords, new_coords):
@@ -92,15 +92,15 @@ def king_moves(coords):
                 res.append((coords[0] + j, coords[1] + g))
     return res
 
-def possible_moves(coords, board):
+def moves(coords, board):
     '''Returns a list of tuples with the possible moves for a certain piece on the board'''
     piece = board[coords[1]][coords[0]]
     res = []
     if piece == wpawn and coords[1] > 0:
         if board[coords[1] - 1][coords[0]] == 0:
             res.append((coords[0], coords[1] - 1))
-        if board[coords[1] - 2][coords[0]] == 0:
-            if coords[1] == 6: res.append((coords[0], coords[1] - 2)) #first move
+        if coords[1] == 6:
+            if board[coords[1] - 2][coords[0]] == 0: res.append((coords[0], coords[1] - 2)) #first move
         if coords[0] < 7:
             if board[coords[1] - 1][coords[0] + 1] != 0: res.append((coords[0] + 1, coords[1] - 1)) #left capture
         if board[coords[1] - 1][coords[0] - 1] != 0: res.append((coords[0] - 1, coords[1] - 1)) #right capture
@@ -108,8 +108,8 @@ def possible_moves(coords, board):
     if piece == bpawn and coords[1] < 7:
         if board[coords[1] + 1][coords[0]] == 0:
             res.append((coords[0], coords[1] + 1))
-        if board[coords[1] + 2][coords[0]] == 0:
-            if coords[1] == 1: res.append((coords[0], coords[1] + 2)) #first move
+        if coords[1] == 1:
+            if board[coords[1] + 2][coords[0]] == 0: res.append((coords[0], coords[1] + 2)) #first move
         if coords[0] < 7:
             if board[coords[1] + 1][coords[0] + 1] != 0: res.append((coords[0] + 1, coords[1] + 1)) #left capture
         if board[coords[1] + 1][coords[0] - 1] != 0: res.append((coords[0] - 1, coords[1] + 1)) #right capture
@@ -141,13 +141,18 @@ def possible_moves(coords, board):
 
     if piece in [wking, bking]:
         for (x,y) in king_moves(coords):
-            if not threat_move(coords, (x,y)): res.append((x,y))
+            res.append((x,y))
     
     res = list(filter(lambda x: x[1] >= 0 and x[1] <= 7 and x[0] >= 0 and x[0] <= 7, res)) #check if move is inside the board
     if is_white(piece): res = list(filter(lambda x: not is_white(board[x[1]][x[0]]), res)) #cant capture own
     if is_black(piece): res = list(filter(lambda x: not is_black(board[x[1]][x[0]]), res))
     #res = list(filter(lambda x: not threat_move(coords, x), res)) #cant endanger king
     #print(res)
+    return res
+
+def possible_moves(coords_list, selected):
+    '''A piece cant move leaving the king threatened'''
+    res = list(filter(lambda x: not threat_move(selected, x), coords_list))
     return res
     
 def draw_moves(coords_list):
@@ -164,12 +169,11 @@ while run:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             if not inside_board(mouse): continue
-            if selected_check and hitbox(mouse) != selected and hitbox(mouse) in possible_moves(selected, board): #select the square to move to
+            if selected_check and hitbox(mouse) != selected and hitbox(mouse) in possible_moves(moves(selected, board), selected): #select the square to move to
                 new = hitbox(mouse)
                 board[new[1]][new[0]] = board[selected[1]][selected[0]]
                 board[selected[1]][selected[0]] = 0
                 selected_check = False
-                
             elif selected_check and hitbox(mouse) == selected: selected_check = False
             else: #select a piece to move
                 selected = hitbox(mouse)
@@ -179,7 +183,7 @@ while run:
     win.blit(board_img, (0,0))
     
     draw_board(board)
-    if selected_check: draw_moves(possible_moves(selected, board))
+    if selected_check: draw_moves(possible_moves(moves(selected, board), selected))
     pygame.display.update()
 
 pygame.quit()
