@@ -6,6 +6,8 @@ pygame.init()
 win = pygame.display.set_mode((640,640))
 
 selected_check = False
+is_pawn_promoting = False
+white_moving = True
 
 board_img = pygame.image.load("../assets/board.png")
 (wpawn, bpawn) = (pygame.image.load("../assets/wpawn.png"),pygame.image.load("../assets/bpawn.png"))
@@ -146,8 +148,6 @@ def moves(coords, board):
     res = list(filter(lambda x: x[1] >= 0 and x[1] <= 7 and x[0] >= 0 and x[0] <= 7, res)) #check if move is inside the board
     if is_white(piece): res = list(filter(lambda x: not is_white(board[x[1]][x[0]]), res)) #cant capture own
     if is_black(piece): res = list(filter(lambda x: not is_black(board[x[1]][x[0]]), res))
-    #res = list(filter(lambda x: not threat_move(coords, x), res)) #cant endanger king
-    #print(res)
     return res
 
 def possible_moves(coords_list, selected):
@@ -159,6 +159,38 @@ def draw_moves(coords_list):
     for coords in coords_list:
         pygame.draw.circle(win, (0,0,0), (coords[0] * 64 + 96, coords[1] * 64 + 96), 7)
 
+def draw_pawn_promotion(coords):
+    if board[coords[1]][coords[0]] == wpawn:
+        for i in enumerate([wqueen, wrook, wbishop, wknight]):
+            win.blit(i[1], (0, 64 + 64*i[0]))
+    if board[coords[1]][coords[0]] == bpawn:
+        for i in enumerate([bqueen, brook, bbishop, bknight]):
+            win.blit(i[1], (576, 320 + 64*i[0]))
+
+def checkmate(board):
+    (white, black) = (True, True)
+    for (x,y) in [(x,y) for x in range(8) for y in range(8) if board[y][x] != 0]:
+        if possible_moves(moves((x,y), board), (x,y)) != []:
+            if is_white(board[y][x]): white = False
+            if is_black(board[y][x]): black = False
+    return 'white' * white + 'black' * black
+
+def restart_game():
+    global board
+    global selected_check
+    global white_moving
+    selected_check = False
+    white_moving = True
+    board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
+            [bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn],
+            [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]
+    
+
 run = True
 while run:
     pygame.time.delay(27)
@@ -168,22 +200,41 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if not inside_board(mouse): continue
-            if selected_check and hitbox(mouse) != selected and hitbox(mouse) in possible_moves(moves(selected, board), selected): #select the square to move to
-                new = hitbox(mouse)
-                board[new[1]][new[0]] = board[selected[1]][selected[0]]
-                board[selected[1]][selected[0]] = 0
-                selected_check = False
-            elif selected_check and hitbox(mouse) == selected: selected_check = False
-            else: #select a piece to move
-                selected = hitbox(mouse)
-                if board[selected[1]][selected[0]] != 0: selected_check = True
+            #if not inside_board(mouse): continue
+            if not is_pawn_promoting:
+                #if not inside_board(mouse): continue
+                if selected_check and hitbox(mouse) != selected and hitbox(mouse) in possible_moves(moves(selected, board), selected): #select the square to move to
+                #if selected_check and hitbox(mouse) != selected and hitbox(mouse): #used for debugging
+                    if (white_moving and is_white(board[selected[1]][selected[0]])) or (not white_moving and is_black(board[selected[1]][selected[0]])):
+                        new = hitbox(mouse)
+                        board[new[1]][new[0]] = board[selected[1]][selected[0]]
+                        board[selected[1]][selected[0]] = 0
+                        selected_check = False
+                        if board[new[1]][new[0]] == wpawn and new[1] == 0: #pawn promotion
+                            is_pawn_promoting = True
+                            pawn_promoting = new
+                        if board[new[1]][new[0]] == bpawn and new[1] == 7:
+                            is_pawn_promoting = True
+                            pawn_promoting = new
+                        white_moving = not white_moving
+                elif selected_check and hitbox(mouse) == selected: selected_check = False
+                else: #select a piece to move
+                    selected = hitbox(mouse)
+                    if board[selected[1]][selected[0]] != 0: selected_check = True
+            else:
+                board[pawn_promoting[1]][pawn_promoting[0]] = [wqueen, wrook, wbishop, wknight, bqueen, brook, bbishop, bknight][hitbox(mouse)[1]]
+                is_pawn_promoting = False
 
-    
+    if checkmate(board) != '':
+        pygame.time.delay(3000)
+        restart_game()
+
     win.blit(board_img, (0,0))
-    
+    if is_pawn_promoting: draw_pawn_promotion(pawn_promoting)  
     draw_board(board)
-    if selected_check: draw_moves(possible_moves(moves(selected, board), selected))
+    if selected_check:
+        if (white_moving and is_white(board[selected[1]][selected[0]])) or (not white_moving and is_black(board[selected[1]][selected[0]])):
+            draw_moves(possible_moves(moves(selected, board), selected))
     pygame.display.update()
 
 pygame.quit()
