@@ -8,6 +8,8 @@ win = pygame.display.set_mode((640,640))
 selected_check = False
 is_pawn_promoting = False
 white_moving = True
+wcastle = True
+bcastle = True
 
 board_img = pygame.image.load("../assets/board.png")
 (wpawn, bpawn) = (pygame.image.load("../assets/wpawn.png"),pygame.image.load("../assets/bpawn.png"))
@@ -92,6 +94,12 @@ def king_moves(coords):
     for (j, g) in [(j,g) for j in [-1,1,0] for g in [-1,1,0]]:
             if 0 <= coords[0] + j<= 7 and 0 <= coords[1] + g<= 7 and (coords[0] + j, coords[1] + g) != coords:
                 res.append((coords[0] + j, coords[1] + g))
+    if wcastle and board[coords[1]][coords[0]] == wking:
+        if board[7][6] == 0 and board[7][5] == 0: res.append((6,7))
+        if board[7][1] == 0 and board[7][2] == 0 and board[7][3] == 0: res.append((2,7))
+    if bcastle and board[coords[1]][coords[0]] == bking:
+        if board[0][6] == 0 and board[0][5] == 0: res.append((6,0))
+        if board[0][1] == 0 and board[0][2] == 0 and board[0][3] == 0: res.append((2,0))
     return res
 
 def moves(coords, board):
@@ -200,9 +208,7 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            #if not inside_board(mouse): continue
             if not is_pawn_promoting:
-                #if not inside_board(mouse): continue
                 if selected_check and hitbox(mouse) != selected and hitbox(mouse) in possible_moves(moves(selected, board), selected): #select the square to move to
                 #if selected_check and hitbox(mouse) != selected and hitbox(mouse): #used for debugging
                     if (white_moving and is_white(board[selected[1]][selected[0]])) or (not white_moving and is_black(board[selected[1]][selected[0]])):
@@ -217,6 +223,10 @@ while run:
                             is_pawn_promoting = True
                             pawn_promoting = new
                         white_moving = not white_moving
+                        if board[new[1]][new[0]] == wking and new == (2,7) and wcastle: (board[7][3], board[7][0], wcastle) = (wrook, 0, False) #castling
+                        if board[new[1]][new[0]] == wking and new == (6,7) and wcastle: (board[7][6], board[7][7], wcastle) = (wrook, 0, False)
+                        if board[new[1]][new[0]] == bking and new == (2,7) and wcastle: (board[0][3], board[0][0], bcastle) = (brook, 0, False)
+                        if board[new[1]][new[0]] == bking and new == (6,7) and wcastle: (board[0][6], board[0][7], bcastle) = (brook, 0, False)
                 elif selected_check and hitbox(mouse) == selected: selected_check = False
                 else: #select a piece to move
                     selected = hitbox(mouse)
