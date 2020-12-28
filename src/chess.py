@@ -12,21 +12,21 @@ wcastle = True
 bcastle = True
 
 board_img = pygame.image.load("../assets/board.png")
-(wpawn, bpawn) = (pygame.image.load("../assets/wpawn.png"),pygame.image.load("../assets/bpawn.png"))
-(wknight, bknight) = (pygame.image.load("../assets/wknight.png"),pygame.image.load("../assets/bknight.png"))
-(wbishop, bbishop) = (pygame.image.load("../assets/wbishop.png"),pygame.image.load("../assets/bbishop.png"))
-(wrook, brook) = (pygame.image.load("../assets/wrook.png"),pygame.image.load("../assets/brook.png"))
-(wqueen, bqueen) = (pygame.image.load("../assets/wqueen.png"),pygame.image.load("../assets/bqueen.png"))
-(wking, bking) = (pygame.image.load("../assets/wking.png"),pygame.image.load("../assets/bking.png"))
+(wpawn, bpawn) = (pygame.image.load("../assets/wpawn.png"), pygame.image.load("../assets/bpawn.png"))
+(wknight, bknight) = (pygame.image.load("../assets/wknight.png"), pygame.image.load("../assets/bknight.png"))
+(wbishop, bbishop) = (pygame.image.load("../assets/wbishop.png"), pygame.image.load("../assets/bbishop.png"))
+(wrook, brook) = (pygame.image.load("../assets/wrook.png"), pygame.image.load("../assets/brook.png"))
+(wqueen, bqueen) = (pygame.image.load("../assets/wqueen.png"), pygame.image.load("../assets/bqueen.png"))
+(wking, bking) = (pygame.image.load("../assets/wking.png"), pygame.image.load("../assets/bking.png"))
 
 board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
-[bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn],
-[0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0],
-[wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn],
-[wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]
+        [bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn],
+        [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]
 
 new_board = [[0,0,0,0,0,0,0,0] for _ in range(8)]
 
@@ -82,7 +82,7 @@ def threat(coords, board):
 def threat_move(coords, new_coords):
     '''Checks if moving a piece will endanger the king'''
     for (x,y) in [(x,y) for x in range(8) for y in range(8)]:
-        new_board[y][x] = board[y][x]        
+        new_board[y][x] = board[y][x]
     new_board[new_coords[1]][new_coords[0]] = new_board[coords[1]][coords[0]]
     new_board[coords[1]][coords[0]] = 0
     side = find_side(new_board[new_coords[1]][new_coords[0]])
@@ -159,10 +159,14 @@ def moves(coords, board):
     return res
 
 def possible_moves(coords_list, selected):
-    '''A piece cant move leaving the king threatened'''
-    res = list(filter(lambda x: not threat_move(selected, x), coords_list))
+    '''Filters the list of moves'''
+    res = list(filter(lambda x: not threat_move(selected, x), coords_list))    
+    if check(board) != '':
+        for (x,y) in res:
+            if board[selected[1]][selected[0]] == wking and ((x,y) == (2,7) or (x,y) == (6,7)) and wcastle: res.remove((x,y))
+            if board[selected[1]][selected[0]] == wking and ((x,y) == (2,0) or (x,y) == (6,0)) and wcastle: res.remove((x,y))
     return res
-    
+
 def draw_moves(coords_list):
     for coords in coords_list:
         pygame.draw.circle(win, (0,0,0), (coords[0] * 64 + 96, coords[1] * 64 + 96), 7)
@@ -174,6 +178,14 @@ def draw_pawn_promotion(coords):
     if board[coords[1]][coords[0]] == bpawn:
         for i in enumerate([bqueen, brook, bbishop, bknight]):
             win.blit(i[1], (576, 320 + 64*i[0]))
+
+def check(board):
+    (white, black) = (False, False)
+    for (x,y) in [(x,y) for x in range(8) for y in range(8) if board[y][x] != 0]:
+        possible_moves = res = list(filter(lambda z: not threat_move((x,y), z), moves((x,y),board)))
+        if is_white(board[y][x]) and find_king('black', board) in possible_moves: black = True
+        if is_black(board[y][x]) and find_king('white', board) in possible_moves: white = True
+    return 'white' * white + 'black' * black
 
 def checkmate(board):
     (white, black) = (True, True)
@@ -196,8 +208,7 @@ def restart_game():
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
             [wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn],
-            [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]
-    
+            [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]  
 
 run = True
 while run:
@@ -209,6 +220,7 @@ while run:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             if not is_pawn_promoting:
+                if not inside_board(mouse): continue
                 if selected_check and hitbox(mouse) != selected and hitbox(mouse) in possible_moves(moves(selected, board), selected): #select the square to move to
                 #if selected_check and hitbox(mouse) != selected and hitbox(mouse): #used for debugging
                     if (white_moving and is_white(board[selected[1]][selected[0]])) or (not white_moving and is_black(board[selected[1]][selected[0]])):
@@ -223,21 +235,28 @@ while run:
                             is_pawn_promoting = True
                             pawn_promoting = new
                         white_moving = not white_moving
-                        if board[new[1]][new[0]] == wking and new == (2,7) and wcastle: (board[7][3], board[7][0], wcastle) = (wrook, 0, False) #castling
-                        if board[new[1]][new[0]] == wking and new == (6,7) and wcastle: (board[7][6], board[7][7], wcastle) = (wrook, 0, False)
-                        if board[new[1]][new[0]] == bking and new == (2,7) and wcastle: (board[0][3], board[0][0], bcastle) = (brook, 0, False)
-                        if board[new[1]][new[0]] == bking and new == (6,7) and wcastle: (board[0][6], board[0][7], bcastle) = (brook, 0, False)
+                        if board[new[1]][new[0]] == wking and new == (2,7) and wcastle: (board[7][3], board[7][0]) = (wrook, 0) #castling
+                        if board[new[1]][new[0]] == wking and new == (6,7) and wcastle: (board[7][5], board[7][7]) = (wrook, 0)
+                        if board[new[1]][new[0]] == bking and new == (2,0) and bcastle: (board[0][3], board[0][0]) = (brook, 0)
+                        if board[new[1]][new[0]] == bking and new == (6,0) and bcastle: (board[0][5], board[0][7]) = (brook, 0)
+                        if board[new[1]][new[0]] == wking: wcastle = False
+                        if board[new[1]][new[0]] == bking: bcastle = False
+
+                        if check(board):
+                            if checkmate(board) != '':
+                                pygame.time.delay(3000)
+                                restart_game()
                 elif selected_check and hitbox(mouse) == selected: selected_check = False
                 else: #select a piece to move
                     selected = hitbox(mouse)
                     if board[selected[1]][selected[0]] != 0: selected_check = True
             else:
-                board[pawn_promoting[1]][pawn_promoting[0]] = [wqueen, wrook, wbishop, wknight, bqueen, brook, bbishop, bknight][hitbox(mouse)[1]]
-                is_pawn_promoting = False
-
-    if checkmate(board) != '':
-        pygame.time.delay(3000)
-        restart_game()
+                if hitbox(mouse)[0] == -1 and is_white(board[pawn_promoting[1]][pawn_promoting[0]]) and 0 <= hitbox(mouse)[1] <= 3:
+                    board[pawn_promoting[1]][pawn_promoting[0]] = [wqueen, wrook, wbishop, wknight][hitbox(mouse)[1]]
+                    is_pawn_promoting = False
+                if hitbox(mouse)[0] == 8 and is_black(board[pawn_promoting[1]][pawn_promoting[0]]) and 4 <= hitbox(mouse)[1] <= 7:
+                    board[pawn_promoting[1]][pawn_promoting[0]] = [bqueen, brook, bbishop, bknight][hitbox(mouse)[1]]
+                    is_pawn_promoting = False
 
     win.blit(board_img, (0,0))
     if is_pawn_promoting: draw_pawn_promotion(pawn_promoting)  
