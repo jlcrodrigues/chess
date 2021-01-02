@@ -29,6 +29,7 @@ board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
         [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]
 
 new_board = [[0,0,0,0,0,0,0,0] for _ in range(8)]
+previous_board = [[0,0,0,0,0,0,0,0] for _ in range(8)]
 
 def print_board(board): #for debugging
     s = ["wpawn","wknight","wbishop","wrook","wqueen","wking", "bpawn","bknight","bbishop","brook","bqueen","bking",0]
@@ -110,19 +111,31 @@ def moves(coords, board):
         if board[coords[1] - 1][coords[0]] == 0:
             res.append((coords[0], coords[1] - 1))
         if coords[1] == 6:
-            if board[coords[1] - 2][coords[0]] == 0: res.append((coords[0], coords[1] - 2)) #first move
+            if board[coords[1] - 2][coords[0]] == 0 and  board[coords[1] - 1][coords[0]] == 0: res.append((coords[0], coords[1] - 2)) #first move
         if coords[0] < 7:
             if board[coords[1] - 1][coords[0] + 1] != 0: res.append((coords[0] + 1, coords[1] - 1)) #left capture
         if board[coords[1] - 1][coords[0] - 1] != 0: res.append((coords[0] - 1, coords[1] - 1)) #right capture
+        if coords[1] == 3 and coords[0] < 7: #en passant
+            if board[coords[1]][coords[0] + 1] and previous_board[1][coords[0] + 1] == bpawn:
+                res.append((coords[0] + 1, coords[1] - 1))
+        if coords[1] == 3 and coords[0] > 0 and previous_board[1][coords[0] - 1] == bpawn:
+            if  board[coords[1]][coords[0] - 1]:
+                res.append((coords[0] - 1, coords[1] - 1))
         
     if piece == bpawn and coords[1] < 7:
         if board[coords[1] + 1][coords[0]] == 0:
             res.append((coords[0], coords[1] + 1))
         if coords[1] == 1:
-            if board[coords[1] + 2][coords[0]] == 0: res.append((coords[0], coords[1] + 2)) #first move
+            if board[coords[1] + 2][coords[0]] == 0 and board[coords[1] + 1][coords[0]] == 0: res.append((coords[0], coords[1] + 2)) #first move
         if coords[0] < 7:
             if board[coords[1] + 1][coords[0] + 1] != 0: res.append((coords[0] + 1, coords[1] + 1)) #left capture
         if board[coords[1] + 1][coords[0] - 1] != 0: res.append((coords[0] - 1, coords[1] + 1)) #right capture
+        if coords[1] == 4 and coords[0] < 7: #en passant
+            if board[coords[1]][coords[0] + 1] and previous_board[6][coords[0] + 1] == wpawn:
+                res.append((coords[0] + 1, coords[1] + 1))
+        if coords[1] == 4 and coords[0] > 0 and previous_board[6][coords[0] - 1] == wpawn:
+            if  board[coords[1]][coords[0] - 1]:
+                res.append((coords[0] - 1, coords[1] + 1))
 
     if piece in [wknight, bknight]:
         for x, y in [(x, y) for x in (1,-1) for y in (2, -2)]:
@@ -225,6 +238,8 @@ while run:
                 #if selected_check and hitbox(mouse) != selected and hitbox(mouse): #used for debugging
                     if (white_moving and is_white(board[selected[1]][selected[0]])) or (not white_moving and is_black(board[selected[1]][selected[0]])):
                         new = hitbox(mouse)
+                        for (x,y) in [(x,y) for x in range(8) for y in range(8)]:
+                            previous_board[y][x] = board[y][x]
                         board[new[1]][new[0]] = board[selected[1]][selected[0]]
                         board[selected[1]][selected[0]] = 0
                         selected_check = False
@@ -240,8 +255,11 @@ while run:
                         if board[new[1]][new[0]] == bking and new == (2,0) and bcastle: (board[0][3], board[0][0]) = (brook, 0)
                         if board[new[1]][new[0]] == bking and new == (6,0) and bcastle: (board[0][5], board[0][7]) = (brook, 0)
                         if board[new[1]][new[0]] == wking: wcastle = False
-                        if board[new[1]][new[0]] == bking: bcastle = False
-
+                        #en passant
+                        if previous_board[selected[1]][selected[0]] == wpawn and board[new[1] + 1][new[0]] == bpawn and previous_board[new[1]][new[0]] == 0:
+                            board[new[1] + 1][new[0]] = 0
+                        if previous_board[selected[1]][selected[0]] == bpawn and board[new[1] - 1][new[0]] == wpawn and previous_board[new[1]][new[0]] == 0:
+                            board[new[1] - 1][new[0]] = 0
                         if check(board):
                             if checkmate(board) != '':
                                 pygame.time.delay(3000)
