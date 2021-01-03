@@ -8,8 +8,8 @@ win = pygame.display.set_mode((640,640))
 selected_check = False
 is_pawn_promoting = False
 white_moving = True
-wcastle = True
-bcastle = True
+wcastle = [True, True]
+bcastle = [True, True]
 
 board_img = pygame.image.load("../assets/board.png")
 (wpawn, bpawn) = (pygame.image.load("../assets/wpawn.png"), pygame.image.load("../assets/bpawn.png"))
@@ -95,12 +95,12 @@ def king_moves(coords):
     for (j, g) in [(j,g) for j in [-1,1,0] for g in [-1,1,0]]:
             if 0 <= coords[0] + j<= 7 and 0 <= coords[1] + g<= 7 and (coords[0] + j, coords[1] + g) != coords:
                 res.append((coords[0] + j, coords[1] + g))
-    if wcastle and board[coords[1]][coords[0]] == wking:
-        if board[7][6] == 0 and board[7][5] == 0: res.append((6,7))
-        if board[7][1] == 0 and board[7][2] == 0 and board[7][3] == 0: res.append((2,7))
-    if bcastle and board[coords[1]][coords[0]] == bking:
-        if board[0][6] == 0 and board[0][5] == 0: res.append((6,0))
-        if board[0][1] == 0 and board[0][2] == 0 and board[0][3] == 0: res.append((2,0))
+    if board[coords[1]][coords[0]] == wking:
+        if board[7][6] == 0 and board[7][5] == 0 and wcastle[1]: res.append((6,7))
+        if board[7][1] == 0 and board[7][2] == 0 and board[7][3] == 0 and wcastle[0]: res.append((2,7))
+    if board[coords[1]][coords[0]] == bking:
+        if board[0][6] == 0 and board[0][5] == 0 and bcastle[1]: res.append((6,0))
+        if board[0][1] == 0 and board[0][2] == 0 and board[0][3] == 0 and bcastle[0]: res.append((2,0))
     return res
 
 def moves(coords, board):
@@ -174,10 +174,12 @@ def moves(coords, board):
 def possible_moves(coords_list, selected):
     '''Filters the list of moves'''
     res = list(filter(lambda x: not threat_move(selected, x), coords_list))    
-    if check(board) != '':
-        for (x,y) in res:
-            if board[selected[1]][selected[0]] == wking and ((x,y) == (2,7) or (x,y) == (6,7)) and wcastle: res.remove((x,y))
-            if board[selected[1]][selected[0]] == wking and ((x,y) == (2,0) or (x,y) == (6,0)) and wcastle: res.remove((x,y))
+    if board[selected[1]][selected[0]] == wking:
+        if threat_move(find_king('white', board), (5,7)) and (6,7) in res and wcastle[1]: res.remove((6,7))
+        if threat_move(find_king('white', board), (3,7)) and (2,7) in res and wcastle[0]: res.remove((2,7))
+    if board[selected[1]][selected[0]] == bking:
+        if threat_move(find_king('black', board), (5,0)) and (6,0) in res and bcastle[1]: res.remove((6,0))
+        if threat_move(find_king('black', board), (3,0)) and (2,0) in res and bcastle[0]: res.remove((2,0))
     return res
 
 def draw_moves(coords_list):
@@ -250,11 +252,18 @@ while run:
                             is_pawn_promoting = True
                             pawn_promoting = new
                         white_moving = not white_moving
-                        if board[new[1]][new[0]] == wking and new == (2,7) and wcastle: (board[7][3], board[7][0]) = (wrook, 0) #castling
-                        if board[new[1]][new[0]] == wking and new == (6,7) and wcastle: (board[7][5], board[7][7]) = (wrook, 0)
-                        if board[new[1]][new[0]] == bking and new == (2,0) and bcastle: (board[0][3], board[0][0]) = (brook, 0)
-                        if board[new[1]][new[0]] == bking and new == (6,0) and bcastle: (board[0][5], board[0][7]) = (brook, 0)
-                        if board[new[1]][new[0]] == wking: wcastle = False
+                        if board[new[1]][new[0]] == wking and new == (2,7) and wcastle[0]: (board[7][3], board[7][0]) = (wrook, 0) #castling
+                        if board[new[1]][new[0]] == wking and new == (6,7) and wcastle[1]: (board[7][5], board[7][7]) = (wrook, 0)
+                        if board[new[1]][new[0]] == bking and new == (2,0) and bcastle[0]: (board[0][3], board[0][0]) = (brook, 0)
+                        if board[new[1]][new[0]] == bking and new == (6,0) and bcastle[1]: (board[0][5], board[0][7]) = (brook, 0)
+                        if board[new[1]][new[0]] == wking: wcastle = [False, False]
+                        if board[new[1]][new[0]] == bking: bcastle = [False, False]
+                        if board[new[1]][new[0]] == wrook:
+                            if selected == (0,7): wcastle[0] = False
+                            if selected == (7,7): wcastle[1] = False
+                        if board[new[1]][new[0]] == brook:
+                            if selected == (0,0): bcastle[0] = False
+                            if selected == (7,0): bcastle[1] = False
                         #en passant
                         if previous_board[selected[1]][selected[0]] == wpawn and board[new[1] + 1][new[0]] == bpawn and previous_board[new[1]][new[0]] == 0:
                             board[new[1] + 1][new[0]] = 0
