@@ -12,6 +12,7 @@ wcastle = [True, True]
 bcastle = [True, True]
 
 board_img = pygame.image.load("../assets/board.png")
+target = pygame.image.load("../assets/target.png")
 (wpawn, bpawn) = (pygame.image.load("../assets/wpawn.png"), pygame.image.load("../assets/bpawn.png"))
 (wknight, bknight) = (pygame.image.load("../assets/wknight.png"), pygame.image.load("../assets/bknight.png"))
 (wbishop, bbishop) = (pygame.image.load("../assets/wbishop.png"), pygame.image.load("../assets/bbishop.png"))
@@ -184,7 +185,8 @@ def possible_moves(coords_list, selected):
 
 def draw_moves(coords_list):
     for coords in coords_list:
-        pygame.draw.circle(win, (0,0,0), (coords[0] * 64 + 96, coords[1] * 64 + 96), 7)
+        if board[coords[1]][coords[0]] != 0: win.blit(target, (64 + 64*coords[0], 64 + 64*coords[1]))
+        else: pygame.draw.circle(win, (0,0,0), (coords[0] * 64 + 96, coords[1] * 64 + 96), 7)
 
 def draw_pawn_promotion(coords):
     if board[coords[1]][coords[0]] == wpawn:
