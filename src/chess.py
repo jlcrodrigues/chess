@@ -2,7 +2,7 @@ import pygame
 import copy
 
 pygame.init()
-
+pygame.display.set_caption("Chess")
 win = pygame.display.set_mode((640,640))
 
 selected_check = False
@@ -10,6 +10,7 @@ is_pawn_promoting = False
 white_moving = True
 wcastle = [True, True]
 bcastle = [True, True]
+holding = False
 
 board_img = pygame.image.load("../assets/board.png")
 target = pygame.image.load("../assets/target.png")
@@ -62,6 +63,9 @@ def is_black(piece):
 
 def find_side(piece):
     return "white" * is_white(piece) + "black" * is_black(piece)
+
+def find_turn():
+    return white_moving * 'white'  + 'black' * (not white_moving)
 
 def find_king(side, board):
     for (x,y) in [(x,y) for x in range(8) for y in range(8)]:
@@ -175,18 +179,22 @@ def moves(coords, board):
 def possible_moves(coords_list, selected):
     '''Filters the list of moves'''
     res = list(filter(lambda x: not threat_move(selected, x), coords_list))    
-    if board[selected[1]][selected[0]] == wking:
-        if threat_move(find_king('white', board), (5,7)) and (6,7) in res and wcastle[1]: res.remove((6,7))
-        if threat_move(find_king('white', board), (3,7)) and (2,7) in res and wcastle[0]: res.remove((2,7))
-    if board[selected[1]][selected[0]] == bking:
-        if threat_move(find_king('black', board), (5,0)) and (6,0) in res and bcastle[1]: res.remove((6,0))
-        if threat_move(find_king('black', board), (3,0)) and (2,0) in res and bcastle[0]: res.remove((2,0))
+    if board[selected[1]][selected[0]] == wking and True in wcastle:
+        if threat_move(find_king('white', board), (5,7)) and (6,7) in res: res.remove((6,7))
+        if threat_move(find_king('white', board), (3,7)) and (2,7) in res: res.remove((2,7))
+    if board[selected[1]][selected[0]] == bking and True in bcastle:
+        if threat_move(find_king('black', board), (5,0)) and (6,0) in res: res.remove((6,0))
+        if threat_move(find_king('black', board), (3,0)) and (2,0) in res: res.remove((2,0))
     return res
 
 def draw_moves(coords_list):
     for coords in coords_list:
         if board[coords[1]][coords[0]] != 0: win.blit(target, (64 + 64*coords[0], 64 + 64*coords[1]))
-        else: pygame.draw.circle(win, (0,0,0), (coords[0] * 64 + 96, coords[1] * 64 + 96), 7)
+        else: pygame.draw.circle(win, (20, 23, 25), (coords[0] * 64 + 96, coords[1] * 64 + 96), 7)
+        if board[selected[1]][selected[0]] == wking and coords == (2,7) and wcastle[0]: win.blit(target, (64, 512)) #castling
+        if board[selected[1]][selected[0]] == wking and coords == (6,7) and wcastle[1]: win.blit(target, (512, 512))
+        if board[selected[1]][selected[0]] == bking and coords == (2,0) and bcastle[0]: win.blit(target, (64, 64))
+        if board[selected[1]][selected[0]] == bking and coords == (6,0) and bcastle[1]: win.blit(target, (512, 512))
 
 def draw_pawn_promotion(coords):
     if board[coords[1]][coords[0]] == wpawn:
@@ -230,6 +238,7 @@ def restart_game():
 run = True
 while run:
     pygame.time.delay(27)
+    click = pygame.mouse.get_pressed()
     mouse = pygame.mouse.get_pos()    
 
     for event in pygame.event.get():
@@ -275,10 +284,11 @@ while run:
                             if checkmate(board) != '':
                                 pygame.time.delay(3000)
                                 restart_game()
-                elif selected_check and hitbox(mouse) == selected: selected_check = False
+                #elif selected_check and hitbox(mouse) == selected: selected_check = False
                 else: #select a piece to move
                     selected = hitbox(mouse)
                     if board[selected[1]][selected[0]] != 0: selected_check = True
+                    else: selected_check = False
             else:
                 if hitbox(mouse)[0] == -1 and is_white(board[pawn_promoting[1]][pawn_promoting[0]]) and 0 <= hitbox(mouse)[1] <= 3:
                     board[pawn_promoting[1]][pawn_promoting[0]] = [wqueen, wrook, wbishop, wknight][hitbox(mouse)[1]]
@@ -289,10 +299,11 @@ while run:
 
     win.blit(board_img, (0,0))
     if is_pawn_promoting: draw_pawn_promotion(pawn_promoting)  
-    draw_board(board)
     if selected_check:
+        if find_side(board[selected[1]][selected[0]]) == find_turn(): pygame.draw.rect(win, (53, 63, 56), (64 + selected[0] * 64, 64 + selected[1] * 64, 64, 64))
         if (white_moving and is_white(board[selected[1]][selected[0]])) or (not white_moving and is_black(board[selected[1]][selected[0]])):
-            draw_moves(possible_moves(moves(selected, board), selected))
+            draw_moves(possible_moves(moves(selected, board), selected))            
+    draw_board(board)
     pygame.display.update()
 
 pygame.quit()
