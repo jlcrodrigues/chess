@@ -195,6 +195,7 @@ def draw_buttons(win):
     win.blit(rotate, (144, 592))
     win.blit(arrow_backwards, (208, 592))
     win.blit(arrow_forward, (272, 592))
+    win.blit(return_menu, (16, 16))
 
 ############ board evaluation ############
 

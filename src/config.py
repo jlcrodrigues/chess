@@ -15,12 +15,14 @@ restart_game = False
 rotated = False
 menu = True
 
+menu_img = pygame.image.load("../assets/menu.png")
 board_img = pygame.image.load("../assets/board.png")
 target = pygame.image.load("../assets/target.png")
 cross = pygame.image.load("../assets/cross.png")
 rotate = pygame.image.load("../assets/rotate.png")
 arrow_backwards = pygame.image.load("../assets/arrow_backwards.png")
 arrow_forward = pygame.image.load("../assets/arrow_forward.png")
+return_menu = pygame.image.load("../assets/return.png")
 (wpawn, bpawn) = (pygame.image.load("../assets/wpawn.png"), pygame.image.load("../assets/bpawn.png"))
 (wknight, bknight) = (pygame.image.load("../assets/wknight.png"), pygame.image.load("../assets/bknight.png"))
 (wbishop, bbishop) = (pygame.image.load("../assets/wbishop.png"), pygame.image.load("../assets/bbishop.png"))
