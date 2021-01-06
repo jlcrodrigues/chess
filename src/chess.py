@@ -76,21 +76,32 @@ while run:
                     if board[selected[1]][selected[0]] != 0: selected_check = True
                     else: selected_check = False
             else: #handles events while a pawn is promoting
-                if hitbox(mouse, rotated)[0] == -1 and is_white(board[pawn_promoting[1]][pawn_promoting[0]]) and 0 <= hitbox(mouse)[1] <= 3:
-                    board[pawn_promoting[1]][pawn_promoting[0]] = [wqueen, wrook, wbishop, wknight][hitbox(mouse)[1]]
+                hit = hitbox(mouse, rotated)
+                y = hit[1]
+                print(hit)
+                if hit[0] == -1 and is_white(board[pawn_promoting[1]][pawn_promoting[0]]) and 0 <= hit[1] <= 3:
+                    if rotated: y = 3 - y
+                    else: y -= 4
+                    board[pawn_promoting[1]][pawn_promoting[0]] = [wqueen, wrook, wbishop, wknight][y]
                     is_pawn_promoting = False
-                if hitbox(mouse, rotated)[0] == 8 and is_black(board[pawn_promoting[1]][pawn_promoting[0]]) and 4 <= hitbox(mouse)[1] <= 7:
-                    board[pawn_promoting[1]][pawn_promoting[0]] = [bqueen, brook, bbishop, bknight][hitbox(mouse)[1] - 4]
+                if hit[0] == 8 and is_black(board[pawn_promoting[1]][pawn_promoting[0]]) and 4 <= hit[1] <= 7:
+                    if rotated: y = 7 - y
+                    else: y -= 4
+                    board[pawn_promoting[1]][pawn_promoting[0]] = [bqueen, brook, bbishop, bknight][y]
                     is_pawn_promoting = False
 
     win.blit(board_img, (0,0))
-    if is_pawn_promoting: draw_pawn_promotion(win, pawn_promoting)  
+    if is_pawn_promoting: draw_pawn_promotion(win, pawn_promoting)
     if selected_check:
         if find_side(board[selected[1]][selected[0]]) == find_turn(white_moving):
-            if rotated: pygame.draw.rect(win, (47, 68, 77), (64 + selected[0] * 64, 64 + (7 - selected[1]) * 64, 64, 64))
+            if rotated: pygame.draw.rect(win, (47, 68, 77), (64 + (7 - selected[0]) * 64, 64 + (7 - selected[1]) * 64, 64, 64))
             else: pygame.draw.rect(win, (47, 68, 77), (64 + selected[0] * 64, 64 + selected[1] * 64, 64, 64))
         if (white_moving and is_white(board[selected[1]][selected[0]])) or (not white_moving and is_black(board[selected[1]][selected[0]])):
             draw_moves(win, possible_moves(moves(selected, board), selected, board), selected, board, rotated)
+    if check(board) != '':
+        king = find_king(check(board), board)
+        if rotated: king = (7 - king[0], 7 - king[1])
+        pygame.draw.rect(win, (236, 62, 19), (king[0] * 64 + 64, king[1]* 64 + 64, 64, 64))
     draw_buttons(win)
     draw_board(win, board, rotated)
     pygame.display.update()
@@ -101,7 +112,6 @@ while run:
         checkmated = False
 
     if restart_game:
-        
         selected_check = False
         white_moving = True
         board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
@@ -114,7 +124,5 @@ while run:
                 [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]
         new_board = [[0,0,0,0,0,0,0,0] for _ in range(8)]
         restart_game = False
-        
-        restart_gamee()
         
 pygame.quit()

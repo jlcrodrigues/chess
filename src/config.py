@@ -13,6 +13,7 @@ holding = False
 checkmated = False
 restart_game = False
 rotated = False
+menu = True
 
 board_img = pygame.image.load("../assets/board.png")
 target = pygame.image.load("../assets/target.png")

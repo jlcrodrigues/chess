@@ -21,7 +21,8 @@ def inside_board(mouse):
 
 def hitbox(mouse, rotated):
     '''Returns the square where the mouse clicked'''
-    if rotated: return (mouse[0]//64 - 1, 9 -  mouse[1]//64 - 1)
+    print((9 - mouse[0]//64 - 1, 9 -  mouse[1]//64 - 1))
+    if rotated: return (9 - mouse[0]//64 - 1, 9 -  mouse[1]//64 - 1)
     return (mouse[0]//64 - 1, mouse[1]//64 - 1)
 
 def is_white(piece):
@@ -160,16 +161,16 @@ def possible_moves(coords_list, selected, board):
 
 def draw_board(win, board, rotated):
     '''Function that renders the pieces on the board'''
-    if rotated: board = board[::-1]
+    if rotated: board = [x[::-1] for x in board][::-1]
     for i in range(8):
         for j in range(8):
             if board[i][j] != 0: win.blit(board[i][j], (64 + 64*j, 64 + 64*i))
 
 def draw_moves(win, coords_list, selected, board, rotated):
     
-    if rotated: coords_list = [(x, 7 - y) for (x,y) in coords_list]
+    if rotated: coords_list = [(7 - x, 7 - y) for (x,y) in coords_list]
     for coords in coords_list:
-        if rotated: c = board[7 - coords[1]][coords[0]]
+        if rotated: c = board[7 - coords[1]][7 - coords[0]]
         else: c = board[coords[1]][coords[0]]
         if c != 0: win.blit(target, (64 + 64*coords[0], 64 + 64*coords[1]))
         else: pygame.draw.circle(win, (20, 23, 25), (coords[0] * 64 + 96, coords[1] * 64 + 96), 7)
@@ -182,10 +183,12 @@ def draw_pawn_promotion(win, coords):
     '''Draws the pieces the pawn can promote to'''
     if board[coords[1]][coords[0]] == wpawn:
         for i in enumerate([wqueen, wrook, wbishop, wknight]):
-            win.blit(i[1], (0, 64 + 64*i[0]))
+            if rotated: win.blit(i[1], (576, 320 + 64*i[0]))
+            else: win.blit(i[1], (0, 64 + 64*i[0]))
     if board[coords[1]][coords[0]] == bpawn:
         for i in enumerate([bqueen, brook, bbishop, bknight]):
-            win.blit(i[1], (576, 320 + 64*i[0]))
+            if rotated: win.blit(i[1], (0, 64 + 64*i[0]))
+            else: win.blit(i[1], (576, 320 + 64*i[0]))
 
 def draw_buttons(win):
     win.blit(cross, (80, 592))
@@ -206,7 +209,7 @@ def check(board):
 def checkmate(board):
     (white, black) = (True, True)
     for (x,y) in [(x,y) for x in range(8) for y in range(8) if board[y][x] != 0]:
-        if possible_moves(moves((x,y), board), (x,y)) != []:
+        if possible_moves(moves((x,y), board), (x,y), board) != []:
             if is_white(board[y][x]): white = False
             if is_black(board[y][x]): black = False
     return 'white' * white + 'black' * black
