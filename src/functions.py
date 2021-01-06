@@ -8,13 +8,20 @@ def print_board(board): #for debugging
     for line in board:
         print(list(map(lambda x: s[p.index(x)], line)))
 
+def copy_board(board):
+    new = [[0,0,0,0,0,0,0,0] for _ in range(8)]
+    for (x,y) in [(x,y) for x in range(8) for y in range(8)]:
+        new[y][x] = board[y][x]
+    return new
+
 def inside_board(mouse):
     '''Checks if the mouse is in a square'''
     coords = (mouse[0]//64 - 1, mouse[1]//64 - 1)
     return (-1 not in coords and 8 not in coords)
 
-def hitbox(mouse):
+def hitbox(mouse, rotated):
     '''Returns the square where the mouse clicked'''
+    if rotated: return (mouse[0]//64 - 1, 9 -  mouse[1]//64 - 1)
     return (mouse[0]//64 - 1, mouse[1]//64 - 1)
 
 def is_white(piece):
@@ -49,7 +56,7 @@ def threat(coords, board):
             elif is_white(board[y][x]) and coords in moves((x,y), board): return True
     return False
 
-def threat_move(coords, new_coords):
+def threat_move(coords, new_coords, board):
     '''Checks if moving a piece will endanger the king'''
     for (x,y) in [(x,y) for x in range(8) for y in range(8)]:
         new_board[y][x] = board[y][x]
@@ -138,29 +145,33 @@ def moves(coords, board):
     if is_black(piece): res = list(filter(lambda x: not is_black(board[x[1]][x[0]]), res))
     return res
 
-def possible_moves(coords_list, selected):
+def possible_moves(coords_list, selected, board):
     '''Filters the list of possible moves'''
-    res = list(filter(lambda x: not threat_move(selected, x), coords_list))    
+    res = list(filter(lambda x: not threat_move(selected, x, board), coords_list))    
     if board[selected[1]][selected[0]] == wking and True in wcastle:
-        if threat_move(find_king('white', board), (5,7)) and (6,7) in res: res.remove((6,7))
-        if threat_move(find_king('white', board), (3,7)) and (2,7) in res: res.remove((2,7))
+        if threat_move(find_king('white', board), (5,7), board) and (6,7) in res: res.remove((6,7))
+        if threat_move(find_king('white', board), (3,7), board) and (2,7) in res: res.remove((2,7))
     if board[selected[1]][selected[0]] == bking and True in bcastle:
-        if threat_move(find_king('black', board), (5,0)) and (6,0) in res: res.remove((6,0))
-        if threat_move(find_king('black', board), (3,0)) and (2,0) in res: res.remove((2,0))
+        if threat_move(find_king('black', board), (5,0), board) and (6,0) in res: res.remove((6,0))
+        if threat_move(find_king('black', board), (3,0), board) and (2,0) in res: res.remove((2,0))
     return res
 
 ############ image rendering ############
 
-def draw_board(win, board):
+def draw_board(win, board, rotated):
     '''Function that renders the pieces on the board'''
+    if rotated: board = board[::-1]
     for i in range(8):
         for j in range(8):
             if board[i][j] != 0: win.blit(board[i][j], (64 + 64*j, 64 + 64*i))
 
-def draw_moves(win, coords_list, selected):
-    '''Draws every square the selected piece can move to'''
+def draw_moves(win, coords_list, selected, board, rotated):
+    
+    if rotated: coords_list = [(x, 7 - y) for (x,y) in coords_list]
     for coords in coords_list:
-        if board[coords[1]][coords[0]] != 0: win.blit(target, (64 + 64*coords[0], 64 + 64*coords[1]))
+        if rotated: c = board[7 - coords[1]][coords[0]]
+        else: c = board[coords[1]][coords[0]]
+        if c != 0: win.blit(target, (64 + 64*coords[0], 64 + 64*coords[1]))
         else: pygame.draw.circle(win, (20, 23, 25), (coords[0] * 64 + 96, coords[1] * 64 + 96), 7)
         if board[selected[1]][selected[0]] == wking and coords == (2,7) and wcastle[0]: win.blit(target, (64, 512)) #castling
         if board[selected[1]][selected[0]] == wking and coords == (6,7) and wcastle[1]: win.blit(target, (512, 512))
@@ -176,12 +187,18 @@ def draw_pawn_promotion(win, coords):
         for i in enumerate([bqueen, brook, bbishop, bknight]):
             win.blit(i[1], (576, 320 + 64*i[0]))
 
+def draw_buttons(win):
+    win.blit(cross, (80, 592))
+    win.blit(rotate, (144, 592))
+    win.blit(arrow_backwards, (208, 592))
+    win.blit(arrow_forward, (272, 592))
+
 ############ board evaluation ############
 
 def check(board):
     (white, black) = (False, False)
     for (x,y) in [(x,y) for x in range(8) for y in range(8) if board[y][x] != 0]:
-        possible_moves = res = list(filter(lambda z: not threat_move((x,y), z), moves((x,y),board)))
+        possible_moves = res = list(filter(lambda z: not threat_move((x,y), z, board), moves((x,y),board)))
         if is_white(board[y][x]) and find_king('black', board) in possible_moves: black = True
         if is_black(board[y][x]) and find_king('white', board) in possible_moves: white = True
     return 'white' * white + 'black' * black
@@ -193,18 +210,3 @@ def checkmate(board):
             if is_white(board[y][x]): white = False
             if is_black(board[y][x]): black = False
     return 'white' * white + 'black' * black
-
-def restart_game():
-    global board
-    global selected_check
-    global white_moving
-    selected_check = False
-    white_moving = True
-    board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
-            [bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn],
-            [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]] 
