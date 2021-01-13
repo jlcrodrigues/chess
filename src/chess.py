@@ -19,6 +19,7 @@ while run:
                 #if 220 <= mouse[0] <= 420 and 275 <= mouse[1] <= 315: menu = False
                 if 220 <= mouse[0] <= 420 and 350 <= mouse[1] <= 385: menu = False #2 player mode
             else:
+                menu = False
                 if not is_pawn_promoting:
                     ######### buttons
                     if 16 <= mouse[0] <= 48 and 16 <= mouse[1] <= 48: #return to menu
@@ -36,12 +37,13 @@ while run:
                         white_moving = not white_moving
                     if not inside_board(mouse): continue
                     square = hitbox(mouse, rotated)
-                    if selected_check and square != selected and square in possible_moves(moves(selected, board), selected, board): #select the square to move to
+                    if selected_check and square != selected and square in possible_moves(moves(selected, board), selected, board, wcastle, bcastle): #select the square to move to
                         if (white_moving and is_white(board[selected[1]][selected[0]])) or (not white_moving and is_black(board[selected[1]][selected[0]])):
                             new = square
                             for (x,y) in [(x,y) for x in range(8) for y in range(8)]:
                                 previous_board[y][x] = board[y][x]
                             board[new[1]][new[0]] = board[selected[1]][selected[0]]
+                            piece = board[new[1]][new[0]]
                             board[selected[1]][selected[0]] = 0
                             move += 1
                             board_history[move] = copy_board(board)
@@ -57,27 +59,32 @@ while run:
                                 is_pawn_promoting = True
                                 pawn_promoting = new
                             #########castling
-                            if board[new[1]][new[0]] == wking and new == (2,7) and wcastle[0]: (board[7][3], board[7][0]) = (wrook, 0)
-                            if board[new[1]][new[0]] == wking and new == (6,7) and wcastle[1]: (board[7][5], board[7][7]) = (wrook, 0)
-                            if board[new[1]][new[0]] == bking and new == (2,0) and bcastle[0]: (board[0][3], board[0][0]) = (brook, 0)
-                            if board[new[1]][new[0]] == bking and new == (6,0) and bcastle[1]: (board[0][5], board[0][7]) = (brook, 0)
-                            if board[new[1]][new[0]] == wking: wcastle = [False, False]
-                            if board[new[1]][new[0]] == bking: bcastle = [False, False]
+                            c = [False, False]
+                            if board[new[1]][new[0]] == wking and new == (0,7) and wcastle[0]: (board[7][3], board[7][0], board[7][2], c[0]) = (wrook, 0, wking, True)
+                            if board[new[1]][new[0]] == wking and new == (7,7) and wcastle[1]: (board[7][5], board[7][7], board[7][6], c[0]) = (wrook, 0, wking, True)
+                            if board[new[1]][new[0]] == bking and new == (0,0) and bcastle[0]: (board[0][3], board[0][0], board[0][2], c[1]) = (brook, 0, bking, True)
+                            if board[new[1]][new[0]] == bking and new == (7,0) and bcastle[1]: (board[0][5], board[0][7], board[0][6], c[1]) = (brook, 0, bking, True)
+                            if c[0]: wcastle = [False, False]
+                            if c[1]: bcastle = [False, False]
                             if board[new[1]][new[0]] == wrook:
                                 if selected == (0,7): wcastle[0] = False
                                 if selected == (7,7): wcastle[1] = False
                             if board[new[1]][new[0]] == brook:
                                 if selected == (0,0): bcastle[0] = False
                                 if selected == (7,0): bcastle[1] = False
+                            if selected == (4,7): wcastle = [False, False]
+                            if selected == (4,0): bcastle = [False, False]
                             #########en passant
                             if previous_board[selected[1]][selected[0]] == wpawn and board[new[1] + 1][new[0]] == bpawn and previous_board[new[1]][new[0]] == 0:
                                 board[new[1] + 1][new[0]] = 0
                             if previous_board[selected[1]][selected[0]] == bpawn and board[new[1] - 1][new[0]] == wpawn and previous_board[new[1]][new[0]] == 0:
                                 board[new[1] - 1][new[0]] = 0
                             #########board evaluation
+                            '''
                             if check(board):
                                 if checkmate(board) != '':
                                     checkmated = True
+                            '''
                     else: #select a piece to move
                         selected = square
                         if board[selected[1]][selected[0]] != 0: selected_check = True
@@ -110,7 +117,7 @@ while run:
                 if rotated: pygame.draw.rect(win, (47, 68, 77), (64 + (7 - selected[0]) * 64, 64 + (7 - selected[1]) * 64, 64, 64))
                 else: pygame.draw.rect(win, (47, 68, 77), (64 + selected[0] * 64, 64 + selected[1] * 64, 64, 64))
             if (white_moving and is_white(board[selected[1]][selected[0]])) or (not white_moving and is_black(board[selected[1]][selected[0]])):
-                draw_moves(win, possible_moves(moves(selected, board), selected, board), selected, board, rotated)
+                draw_moves(win, possible_moves(moves(selected, board), selected, board, wcastle, bcastle), selected, board, rotated)
         if check(board) != '':
             king = find_king(check(board), board)
             if rotated: king = (7 - king[0], 7 - king[1])

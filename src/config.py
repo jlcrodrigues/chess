@@ -39,6 +39,15 @@ board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
         [wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn],
         [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]
 
+board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
+        [bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn],
+        [0, brook, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [wrook, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [wrook, 0, 0, 0, wking, 0, 0, wrook]] 
+
 new_board = [[0,0,0,0,0,0,0,0] for _ in range(8)]
 previous_board = [[0,0,0,0,0,0,0,0] for _ in range(8)]
 board_history = {}
@@ -47,20 +56,4 @@ for (x,y) in [(x,y) for x in range(8) for y in range(8)]:
     prev_board[y][x] = board[y][x]
 move = 0
 board_history[move] = prev_board
-
-
-def restart_gamee():
-    global board
-    global selected_check
-    global white_moving
-    selected_check = False
-    white_moving = True
-    board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
-            [bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn],
-            [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]] 
 
