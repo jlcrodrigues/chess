@@ -14,6 +14,9 @@ checkmated = False
 restart_game = False
 rotated = False
 menu = True
+play_move = False
+multiplayer = True
+
 
 menu_img = pygame.image.load("../assets/menu.png")
 board_img = pygame.image.load("../assets/board.png")
@@ -38,16 +41,16 @@ board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
         [0, 0, 0, 0, 0, 0, 0, 0],
         [wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn, wpawn],
         [wrook, wknight, wbishop, wqueen, wking, wbishop, wknight, wrook]]
-
-board = [[brook, bknight, bbishop, bqueen, bking, bbishop, bknight, brook],
-        [bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn, bpawn],
+'''
+board = [[brook, 0, bbishop, bqueen, bking, bbishop, bknight, brook],
+        [0, wpawn, 0, 0, 0, 0, 0, 0],
         [0, brook, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0],
         [wrook, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0],
         [wrook, 0, 0, 0, wking, 0, 0, wrook]] 
-
+'''
 new_board = [[0,0,0,0,0,0,0,0] for _ in range(8)]
 previous_board = [[0,0,0,0,0,0,0,0] for _ in range(8)]
 board_history = {}

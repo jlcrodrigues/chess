@@ -143,7 +143,7 @@ def moves(coords, board):
     if is_black(piece): res = list(filter(lambda x: not is_black(board[x[1]][x[0]]), res)) 
     return res
 
-def possible_moves(coords_list, selected, boards, wcastle, bcastle):
+def possible_moves(coords_list, selected, board, wcastle, bcastle):
     '''Filters the list of possible moves to protect the king and adds castling moves'''
     res = list(filter(lambda x: not threat_move(selected, x, board), coords_list))
     piece = board[selected[1]][selected[0]]
@@ -204,12 +204,11 @@ def check(board):
         if is_white(board[y][x]) and find_king('black', board) in possible_moves: black = True
         if is_black(board[y][x]) and find_king('white', board) in possible_moves: white = True
     return 'white' * white + 'black' * black
-'''
-def checkmate(board):
+
+def checkmate(board, wcastle, bcastle):
     (white, black) = (True, True)
     for (x,y) in [(x,y) for x in range(8) for y in range(8) if board[y][x] != 0]:
-        if possible_moves(moves((x,y), board), (x,y), board) != []:
+        if possible_moves(moves((x,y), board), (x,y), board, wcastle, bcastle) != []:
             if is_white(board[y][x]): white = False
             if is_black(board[y][x]): black = False
     return 'white' * white + 'black' * black
-'''
