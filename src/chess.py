@@ -11,7 +11,7 @@ clock = pygame.time.Clock()
 
 run = True
 while run:
-    #clock.tick(60)
+    clock.tick(60)
     click = pygame.mouse.get_pressed()
     mouse = pygame.mouse.get_pos()
 
@@ -71,7 +71,8 @@ while run:
 
     if not multiplayer and not is_pawn_promoting:
         if not turn:
-            chosen = bot.play(board, white_moving, wcastle, bcastle)
+            prev_board = copy_board(board)
+            chosen = bot.play(prev_board, white_moving, wcastle, bcastle)
             if chosen != False:
                 play_move = True
                 selected = chosen[0]
