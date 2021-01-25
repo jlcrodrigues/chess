@@ -34,12 +34,14 @@ while run:
                 if 144 <= mouse[0] <= 176 and 592 <= mouse[1] <= 624: rotated = not rotated #rotate the board
                 if 208 <= mouse[0] <= 240 and 592 <= mouse[1] <= 624 and move > 0: #go back a move
                     move -= 1
+                    if not multiplayer: move -= 1
                     board = copy_board(board_history[move])
-                    white_moving = not white_moving
+                    if multiplayer: white_moving = not white_moving
                 if 272 <= mouse[0] <= 304 and 592 <= mouse[1] <= 624 and move < len(board_history) - 1: #advance a move.
                     move += 1
+                    if not multiplayer: move += 1
                     board = copy_board(board_history[move])
-                    white_moving = not white_moving
+                    if multiplayer: white_moving = not white_moving
                 if not is_pawn_promoting:
                     if not inside_board(mouse): continue
                     square = hitbox(mouse, rotated)
